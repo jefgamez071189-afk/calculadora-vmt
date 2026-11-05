@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123b35">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VMT Hex">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Calculadora VMT</title>
+<style>
+:root{color-scheme:light;--bg:#f3f6f5;--card:#fff;--ink:#172522;--muted:#65736f;--accent:#176b58;--line:#dce5e1}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
+main{max-width:680px;margin:0 auto;padding:22px 0 36px}.top{display:flex;align-items:center;gap:12px;margin-bottom:20px}.logo{width:44px;height:44px;border-radius:14px;background:#123b35;color:white;display:grid;place-items:center;font-weight:800}.sub{color:var(--muted);font-size:13px;margin-top:3px}h1{font-size:22px;margin:0}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:17px;margin:14px 0;box-shadow:0 3px 14px #183c3010}label{font-weight:650;display:block;margin-bottom:8px}textarea{width:100%;min-height:112px;border:1px solid #cbd8d2;border-radius:12px;padding:13px;font:15px ui-monospace,SFMono-Regular,monospace;line-height:1.5;resize:vertical;color:var(--ink)}.hint{font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px}.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.seg button,.actions button{border:1px solid var(--line);border-radius:11px;background:#fff;padding:11px 7px;font-weight:650;color:var(--ink)}.seg button.active{background:#e3f1eb;border-color:var(--accent);color:var(--accent)}.status{font-size:13px;color:var(--muted);margin:12px 0}.error{color:#b42318;background:#fff0ef;padding:11px;border-radius:10px}.results{width:100%;border-collapse:collapse;font-size:14px}.results th,.results td{text-align:left;padding:11px 5px;border-bottom:1px solid var(--line)}.results th{font-size:11px;color:var(--muted);text-transform:uppercase}.results td:last-child,.results th:last-child{text-align:right}.bytes{font:12px ui-monospace,monospace;color:var(--muted)}.value{font-weight:750;font-variant-numeric:tabular-nums}.actions{display:flex;gap:9px;margin-top:14px}.actions button{flex:1}.primary{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important}.foot{font-size:12px;color:var(--muted);line-height:1.5;padding:4px 3px}.install{display:none;background:#e8f3ee;border:1px solid #c9e1d5;border-radius:13px;padding:12px;font-size:13px;margin-bottom:14px}.pill{display:inline-block;background:#e6f1ed;color:#176b58;border-radius:30px;padding:4px 8px;font-size:11px;font-weight:700}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div class="logo">VMT</div><div><h1>Calculadora VMT</h1><div class="sub">Hexadecimal → coordenadas · ROB_OUT</div></div></div>
+  <div id="installTip" class="install"></div>
+  <section class="card">
+    <label for="hex">Introduce los 24 bytes (bytes 6–29)</label>
+    <textarea id="hex" spellcheck="false" autocapitalize="characters">DB FF FF FF D5 FF FF FF 0E 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00</textarea>
+    <div class="hint">Pega los bytes separados por espacios. También acepta una cadena continua y valores con prefijo 0x.</div>
+  </section>
+  <section class="card">
+    <label>Factor para X, Y y Z</label>
+    <div class="seg" id="factors">
+      <button data-factor="1">÷ 1</button><button data-factor="10">÷ 10</button><button data-factor="100" class="active">÷ 100</button><button data-factor="1000">÷ 1000</button>
+    </div>
+    <div class="hint">Las rotaciones RX, RY y RZ se muestran como Int32 sin escala adicional, pendiente de confirmar el formato VMT.</div>
+  </section>
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><strong>Resultados</strong><span id="count" class="pill">24 bytes</span></div>
+    <div id="status" class="status">Conversión automática</div>
+    <table class="results">
+      <thead><tr><th>Eje</th><th>Bytes</th><th>Int32</th><th>Resultado</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="actions"><button class="primary" id="copy">Copiar resultados</button><button id="reset">Restaurar ejemplo</button></div>
+  </section>
+  <div class="foot">Interpretación: 6 bloques consecutivos de 4 bytes, Little Endian, entero de 32 bits con signo. X/Y/Z se dividen por el factor seleccionado. Comprueba el escalado de rotaciones con la documentación/configuración de VMT antes de usarlo en producción.</div>
+</main>
+<script>
+const input=document.getElementById('hex'), rows=document.getElementById('rows'), status=document.getElementById('status'), count=document.getElementById('count');
+let factor=100, last=[];
+function convert(){
+  const compact=input.value.replace(/0x/gi,'').replace(/[^0-9a-f]/gi,'');
+  const byteCount=compact.length/2;
+  count.textContent=`${byteCount} / 24 bytes`;
+  if(!/^[0-9a-f]*$/i.test(compact) || compact.length!==48){
+    rows.innerHTML=''; status.className='status error';
+    status.textContent=`Introduce exactamente 24 bytes hexadecimales (48 dígitos). Hay ${byteCount} bytes completos.`;
+    last=[]; return;
+  }
+  const b=Array.from({length:24},(_,i)=>parseInt(compact.slice(i*2,i*2+2),16));
+  const names=['X','Y','Z','RX','RY','RZ'];
+  last=names.map((name,i)=>{
+    const p=i*4, u=(b[p]+b[p+1]*256+b[p+2]*65536+b[p+3]*16777216)>>>0;
+    const n=u>=0x80000000?u-0x100000000:u;
+    const result=i<3?(n/factor).toFixed(2):String(n);
+    return {name,bytes:b.slice(p,p+4).map(x=>x.toString(16).toUpperCase().padStart(2,'0')).join(' '),integer:n,result,unit:i<3?'mm':'°'};
+  });
+  rows.innerHTML=last.map(r=>`<tr><td><b>${r.name}</b></td><td class="bytes">${r.bytes}</td><td>${r.integer.toLocaleString('es-ES')}</td><td class="value">${r.result} ${r.unit}</td></tr>`).join('');
+  status.className='status'; status.textContent='Conversión correcta · Int32 con signo · Little Endian';
+}
+input.addEventListener('input',convert);
+document.querySelectorAll('[data-factor]').forEach(btn=>btn.addEventListener('click',()=>{factor=Number(btn.dataset.factor);document.querySelectorAll('[data-factor]').forEach(x=>x.classList.toggle('active',x===btn));convert()}));
+document.getElementById('reset').addEventListener('click',()=>{input.value='DB FF FF FF D5 FF FF FF 0E 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00';factor=100;document.querySelectorAll('[data-factor]').forEach(x=>x.classList.toggle('active',x.dataset.factor==='100'));convert()});
+document.getElementById('copy').addEventListener('click',async()=>{if(!last.length)return;const t=last.map(r=>`${r.name}: ${r.result} ${r.unit} (Int32 ${r.integer})`).join('\\n');try{await navigator.clipboard.writeText(t);status.textContent='Resultados copiados.'}catch(e){status.textContent=t}});
+convert();
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+const tip=document.getElementById('installTip');
+if(/iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone){tip.style.display='block';tip.innerHTML='<b>Instalar en iPhone:</b> abre esta página en Safari, toca Compartir y selecciona “Añadir a pantalla de inicio”.';}
+</script>
+</body></html>
