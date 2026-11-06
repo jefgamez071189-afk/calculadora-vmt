@@ -1,78 +1,78 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#123b35">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="VMT Hex">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon-192.png">
-<title>Calculadora VMT</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123b35"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="VMT Hex">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><title>VMT Hex</title>
 <style>
-:root{color-scheme:light;--bg:#f3f6f5;--card:#fff;--ink:#172522;--muted:#65736f;--accent:#176b58;--line:#dce5e1}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
-main{max-width:680px;margin:0 auto;padding:22px 0 36px}.top{display:flex;align-items:center;gap:12px;margin-bottom:20px}.logo{width:44px;height:44px;border-radius:14px;background:#123b35;color:white;display:grid;place-items:center;font-weight:800}.sub{color:var(--muted);font-size:13px;margin-top:3px}h1{font-size:22px;margin:0}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:17px;margin:14px 0;box-shadow:0 3px 14px #183c3010}label{font-weight:650;display:block;margin-bottom:8px}textarea{width:100%;min-height:112px;border:1px solid #cbd8d2;border-radius:12px;padding:13px;font:15px ui-monospace,SFMono-Regular,monospace;line-height:1.5;resize:vertical;color:var(--ink)}.hint{font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px}.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.seg button,.actions button{border:1px solid var(--line);border-radius:11px;background:#fff;padding:11px 7px;font-weight:650;color:var(--ink)}.seg button.active{background:#e3f1eb;border-color:var(--accent);color:var(--accent)}.status{font-size:13px;color:var(--muted);margin:12px 0}.error{color:#b42318;background:#fff0ef;padding:11px;border-radius:10px}.results{width:100%;border-collapse:collapse;font-size:14px}.results th,.results td{text-align:left;padding:11px 5px;border-bottom:1px solid var(--line)}.results th{font-size:11px;color:var(--muted);text-transform:uppercase}.results td:last-child,.results th:last-child{text-align:right}.bytes{font:12px ui-monospace,monospace;color:var(--muted)}.value{font-weight:750;font-variant-numeric:tabular-nums}.actions{display:flex;gap:9px;margin-top:14px}.actions button{flex:1}.primary{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important}.foot{font-size:12px;color:var(--muted);line-height:1.5;padding:4px 3px}.install{display:none;background:#e8f3ee;border:1px solid #c9e1d5;border-radius:13px;padding:12px;font-size:13px;margin-bottom:14px}.pill{display:inline-block;background:#e6f1ed;color:#176b58;border-radius:30px;padding:4px 8px;font-size:11px;font-weight:700}
-</style>
-</head>
-<body>
-<main>
-  <div class="top"><div class="logo">VMT</div><div><h1>Calculadora VMT</h1><div class="sub">Hexadecimal → coordenadas · ROB_OUT</div></div></div>
-  <div id="installTip" class="install"></div>
-  <section class="card">
-    <label for="hex">Introduce los 24 bytes (bytes 6–29)</label>
-    <textarea id="hex" spellcheck="false" autocapitalize="characters">DB FF FF FF D5 FF FF FF 0E 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00</textarea>
-    <div class="hint">Pega los bytes separados por espacios. También acepta una cadena continua y valores con prefijo 0x.</div>
-  </section>
-  <section class="card">
-    <label>Factor para X, Y y Z</label>
-    <div class="seg" id="factors">
-      <button data-factor="1">÷ 1</button><button data-factor="10">÷ 10</button><button data-factor="100" class="active">÷ 100</button><button data-factor="1000">÷ 1000</button>
-    </div>
-    <div class="hint">Las rotaciones RX, RY y RZ se muestran como Int32 sin escala adicional, pendiente de confirmar el formato VMT.</div>
-  </section>
-  <section class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><strong>Resultados</strong><span id="count" class="pill">24 bytes</span></div>
-    <div id="status" class="status">Conversión automática</div>
-    <table class="results">
-      <thead><tr><th>Eje</th><th>Bytes</th><th>Int32</th><th>Resultado</th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
-    <div class="actions"><button class="primary" id="copy">Copiar resultados</button><button id="reset">Restaurar ejemplo</button></div>
-  </section>
-  <div class="foot">Interpretación: 6 bloques consecutivos de 4 bytes, Little Endian, entero de 32 bits con signo. X/Y/Z se dividen por el factor seleccionado. Comprueba el escalado de rotaciones con la documentación/configuración de VMT antes de usarlo en producción.</div>
+:root{color-scheme:light;--bg:#f3f6f5;--card:#fff;--ink:#172522;--muted:#65736f;--accent:#176b58;--line:#dce5e1;--warn:#946200;--bad:#b42318}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom)}main{max-width:760px;margin:auto;padding:20px 0 36px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.logo{width:46px;height:46px;border-radius:14px;background:#123b35;color:white;display:grid;place-items:center;font-weight:800}.sub,.hint,.foot{color:var(--muted);font-size:12px;line-height:1.45;margin-top:5px}h1{font-size:22px;margin:0}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:16px;margin:13px 0;box-shadow:0 3px 14px #183c3010}label{font-weight:650;display:block;margin-bottom:7px}.seg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.seg button,.actions button{border:1px solid var(--line);border-radius:11px;background:#fff;padding:12px 8px;font-weight:700;color:var(--ink);font-size:14px}.seg button.active{background:#e3f1eb;border-color:var(--accent);color:var(--accent)}textarea,.control{width:100%;border:1px solid #cbd8d2;border-radius:10px;padding:11px;font:15px ui-monospace,SFMono-Regular,monospace;color:var(--ink);background:#fff}.control{font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}textarea{min-height:100px;resize:vertical;line-height:1.55}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.field{border:1px solid var(--line);border-radius:12px;padding:11px;min-width:0}.smalllabel{font-size:11px;color:var(--muted);font-weight:600;margin:0 0 7px}.actions{display:flex;gap:8px;margin-top:13px;flex-wrap:wrap}.actions button{flex:1;min-width:105px}.primary{background:var(--accent)!important;color:white!important;border-color:var(--accent)!important}.status{font-size:13px;color:var(--muted);margin:10px 0;line-height:1.5}.error{color:var(--bad);background:#fff0ef;padding:10px;border-radius:10px}.warning{color:var(--warn);background:#fff8e6;padding:10px;border-radius:10px}.pill{display:inline-block;background:#e6f1ed;color:#176b58;border-radius:30px;padding:4px 8px;font-size:11px;font-weight:700;white-space:nowrap}.results{width:100%;border-collapse:collapse;font-size:13px}.results th,.results td{text-align:left;padding:10px 5px;border-bottom:1px solid var(--line);vertical-align:top}.results th{font-size:10px;color:var(--muted);text-transform:uppercase}.results td:last-child,.results th:last-child{text-align:right}.bytes{font:11px ui-monospace,monospace;color:var(--muted);overflow-wrap:anywhere}.value{font-weight:800;font-variant-numeric:tabular-nums}.axis{font-weight:800}.foot{padding:5px 3px}.hidden{display:none!important}.progress{height:7px;border-radius:99px;background:#e8eeeb;overflow:hidden;margin:8px 0}.progress>span{display:block;height:100%;background:var(--accent);width:0;transition:width .15s}.muted{color:var(--muted)}@media(max-width:520px){.grid{grid-template-columns:1fr}.actions{flex-direction:column}.card{padding:13px}.results{font-size:12px}.results th,.results td{padding:8px 3px}}
+</style></head>
+<body><main>
+<div class="top"><div class="logo">VMT</div><div><h1>VMT Hex</h1><div class="sub">Conversor hexadecimal de coordenadas</div></div></div>
+<section class="card"><label>Formato de comunicación</label><div class="seg" id="format"><button class="active" data-format="toolbox">Toolbox/BK</button><button data-format="3d">3D</button></div><div class="hint" id="formatHint">Int32 · 4 bytes por eje · 24 bytes en total</div></section>
+<section class="card"><label>Modo de conversión</label><div class="seg" id="mode"><button class="active" data-mode="individual">Conversión individual</button><button data-mode="full">Telegrama completo</button></div></section>
+<section class="card" id="individualCard">
+<strong>Conversión individual</strong>
+<div class="grid" style="margin-top:12px">
+ <div class="field"><div class="smalllabel">Tipo de conversión</div><select id="direction" class="control"><option value="hex">Hexadecimal → Decimal</option><option value="decimal">Decimal → Hexadecimal</option></select></div>
+ <div class="field"><div class="smalllabel">Coordenada</div><select id="axisName" class="control"><option value="X">X</option><option value="Y">Y</option><option value="Z">Z</option><option value="RX">RX</option><option value="RY">RY</option><option value="RZ">RZ</option></select></div>
+ <div class="field" id="hexWrap"><div class="smalllabel">Valor hexadecimal</div><input id="hexValue" class="control" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Ej. DB FF FF FF"></div>
+ <div class="field hidden" id="decimalWrap"><div class="smalllabel">Valor decimal</div><input id="decimalValue" class="control" type="text" inputmode="decimal" placeholder="Ej. -0,37"></div>
+ <div class="field"><div class="smalllabel" id="factorLabel">Divisor</div><select id="individualFactor" class="control"></select></div>
+</div>
+<div class="actions"><button class="primary" id="individualConvert">Convertir</button><button id="individualClearFields">Limpiar campos</button></div>
+<div id="individualMessage" class="status">Introduce un valor para convertir.</div>
+</section>
+<section class="card hidden" id="fullCard">
+<label for="telegram">Telegrama de coordenadas</label>
+<textarea id="telegram" spellcheck="false" autocapitalize="characters" placeholder="Ej. DB FF FF FF DB FF FF FF ..."></textarea>
+<div class="hint" id="telegramHint">Introduce hasta 24 bytes de coordenadas, sin cabecera.</div>
+<div class="status" style="margin-bottom:4px" id="charCount">0 / 48 dígitos hexadecimales · 48 restantes</div><div class="progress"><span id="progressBar"></span></div>
+<div class="hint" style="margin-top:12px"><b>Divisores por coordenada</b></div><div class="grid" id="fullFactors" style="margin-top:8px"></div>
+<div class="actions"><button class="primary" id="fullConvert">Convertir</button><button id="fullClear">Limpiar campo</button></div>
+<div id="fullMessage" class="status">Puedes convertir los ejes completos aunque el telegrama esté incompleto.</div>
+</section>
+<section class="card" id="resultsCard">
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><strong>Resultados</strong><span id="count" class="pill">Sin resultados</span></div>
+ <div id="status" class="status">Pulsa Convertir para mostrar los resultados.</div>
+ <div style="overflow-x:auto"><table class="results"><thead id="resultHead"><tr><th>Ref.</th><th>Hex.</th><th>Entero</th><th>Divisor</th><th>Resultado</th></tr></thead><tbody id="rows"></tbody></table></div>
+ <div class="actions" id="resultActions"><button id="copyResults">Copiar resultados</button><button id="clearHistory">Limpiar historial</button></div>
+</section>
+<div class="foot">Interpretación: entero con signo, Little Endian. Toolbox/BK: Int32, 4 bytes por eje. 3D: Int16, 2 bytes por eje. Divisores predeterminados: Toolbox/BK, traslaciones 100 y rotaciones 1000; 3D, traslaciones 1 y rotaciones 1000. Verifica el escalado con el equipo antes de utilizar los resultados en producción.</div>
 </main>
 <script>
-const input=document.getElementById('hex'), rows=document.getElementById('rows'), status=document.getElementById('status'), count=document.getElementById('count');
-let factor=100, last=[];
-function convert(){
-  const compact=input.value.replace(/0x/gi,'').replace(/[^0-9a-f]/gi,'');
-  const byteCount=compact.length/2;
-  count.textContent=`${byteCount} / 24 bytes`;
-  if(!/^[0-9a-f]*$/i.test(compact) || compact.length!==48){
-    rows.innerHTML=''; status.className='status error';
-    status.textContent=`Introduce exactamente 24 bytes hexadecimales (48 dígitos). Hay ${byteCount} bytes completos.`;
-    last=[]; return;
-  }
-  const b=Array.from({length:24},(_,i)=>parseInt(compact.slice(i*2,i*2+2),16));
-  const names=['X','Y','Z','RX','RY','RZ'];
-  last=names.map((name,i)=>{
-    const p=i*4, u=(b[p]+b[p+1]*256+b[p+2]*65536+b[p+3]*16777216)>>>0;
-    const n=u>=0x80000000?u-0x100000000:u;
-    const result=i<3?(n/factor).toFixed(2):String(n);
-    return {name,bytes:b.slice(p,p+4).map(x=>x.toString(16).toUpperCase().padStart(2,'0')).join(' '),integer:n,result,unit:i<3?'mm':'°'};
-  });
-  rows.innerHTML=last.map(r=>`<tr><td><b>${r.name}</b></td><td class="bytes">${r.bytes}</td><td>${r.integer.toLocaleString('es-ES')}</td><td class="value">${r.result} ${r.unit}</td></tr>`).join('');
-  status.className='status'; status.textContent='Conversión correcta · Int32 con signo · Little Endian';
-}
-input.addEventListener('input',convert);
-document.querySelectorAll('[data-factor]').forEach(btn=>btn.addEventListener('click',()=>{factor=Number(btn.dataset.factor);document.querySelectorAll('[data-factor]').forEach(x=>x.classList.toggle('active',x===btn));convert()}));
-document.getElementById('reset').addEventListener('click',()=>{input.value='DB FF FF FF D5 FF FF FF 0E 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00';factor=100;document.querySelectorAll('[data-factor]').forEach(x=>x.classList.toggle('active',x.dataset.factor==='100'));convert()});
-document.getElementById('copy').addEventListener('click',async()=>{if(!last.length)return;const t=last.map(r=>`${r.name}: ${r.result} ${r.unit} (Int32 ${r.integer})`).join('\\n');try{await navigator.clipboard.writeText(t);status.textContent='Resultados copiados.'}catch(e){status.textContent=t}});
-convert();
-if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
-const tip=document.getElementById('installTip');
-if(/iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone){tip.style.display='block';tip.innerHTML='<b>Instalar en iPhone:</b> abre esta página en Safari, toca Compartir y selecciona “Añadir a pantalla de inicio”.';}
-</script>
-</body></html>
+const axes=['X','Y','Z','RX','RY','RZ'];
+const defaults={toolbox:[100,100,100,1000,1000,1000],'3d':[1,1,1,1000,1000,1000]};
+let format='toolbox',mode='individual';
+const histories={toolbox:{hex:[],decimal:[]},'3d':{hex:[],decimal:[]}};
+let fullRows=[];
+const $=id=>document.getElementById(id);
+const bytesPer=()=>format==='toolbox'?4:2;
+const bits=()=>bytesPer()*8;
+const expectedBytes=()=>bytesPer()*6;
+const expectedChars=()=>expectedBytes()*2;
+const options=selected=>[1,10,100,1000].map(n=>`<option value="${n}" ${Number(selected)===n?'selected':''}>${n}</option>`).join('');
+const cleanHex=s=>s.replace(/\s+/g,'').toUpperCase();
+const isHex=s=>/^[0-9A-F]+$/.test(s);
+function decodeComplete(hex){const n=bytesPer();if(hex.length!==n*2||!isHex(hex))throw Error('Bloque hexadecimal incompleto o no válido.');let u=0n;for(let i=0;i<n;i++)u|=BigInt(parseInt(hex.slice(i*2,i*2+2),16))<<BigInt(i*8);const mod=1n<<BigInt(bits()),sign=mod>>1n;return Number(u>=sign?u-mod:u);}
+function encodeInt(value){const n=bytesPer(),mod=1n<<BigInt(bits());let v=BigInt(value);if(v<0)v=mod+v;const out=[];for(let i=0;i<n;i++)out.push(Number((v>>BigInt(i*8))&255n).toString(16).toUpperCase().padStart(2,'0'));return out.join(' ');}
+function fmt(n){return Number(n.toFixed(8)).toLocaleString('es-ES',{maximumFractionDigits:8});}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function axisIndex(){return axes.indexOf($('axisName').value);}
+function setFactorDefaults(){const i=axisIndex();$('individualFactor').innerHTML=options(defaults[format][i]);$('fullFactors').innerHTML=[0,3,1,4,2,5].map(i=>`<div class="field"><div class="smalllabel">${axes[i]} · divisor</div><select class="control" id="ff${i}">${options(defaults[format][i])}</select></div>`).join('');}
+function renderMode(){const reverse=$('direction').value==='decimal';$('hexWrap').classList.toggle('hidden',reverse);$('decimalWrap').classList.toggle('hidden',!reverse);$('factorLabel').textContent=reverse?'Multiplicador':'Divisor';}
+function setFormat(f){format=f;document.querySelectorAll('#format button').forEach(b=>b.classList.toggle('active',b.dataset.format===f));$('formatHint').textContent=f==='toolbox'?'Int32 · 4 bytes por eje · 24 bytes en total':'Int16 · 2 bytes por eje · 12 bytes en total';$('telegramHint').textContent=`Introduce hasta ${expectedBytes()} bytes (${expectedChars()} dígitos hexadecimales), sin cabecera. Se procesan los ejes de izquierda a derecha.`;setFactorDefaults();updateCharCount();if(mode==='full'){fullRows=[];$('fullMessage').textContent='Formato cambiado. Pulsa Convertir para interpretar el telegrama con el nuevo formato.';$('fullMessage').className='status';}renderResults();}
+function setMode(m){mode=m;$('individualCard').classList.toggle('hidden',m!=='individual');$('fullCard').classList.toggle('hidden',m!=='full');document.querySelectorAll('#mode button').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));renderResults();}
+function updateCharCount(){const raw=cleanHex($('telegram').value),target=expectedChars(),used=raw.length,remaining=Math.max(0,target-used);$('charCount').textContent=`${used} / ${target} dígitos hexadecimales · ${remaining} restantes`;$('progressBar').style.width=`${Math.min(100,used/target*100)}%`;}
+function currentHistory(){return histories[format][$('direction').value];}
+function renderIndividualHistory(){const reverse=$('direction').value==='decimal',visible=currentHistory();$('resultHead').innerHTML=reverse?'<tr><th>Ref.</th><th>Decimal</th><th>Multiplicador</th><th>Entero</th><th>Resultado HEX</th></tr>':'<tr><th>Ref.</th><th>Hex.</th><th>Entero</th><th>Divisor</th><th>Resultado</th></tr>';$('count').textContent=visible.length?`${visible.length} / 10 resultados`:'Sin resultados';$('status').textContent=visible.length?`Historial ${format==='toolbox'?'Toolbox/BK':'3D'} · ${reverse?'Decimal → Hexadecimal':'Hexadecimal → Decimal'}. Se conserva mientras la aplicación esté abierta.`:'Todavía no hay conversiones en este historial.';$('rows').innerHTML=visible.map(r=>reverse?`<tr><td class="axis">${escapeHtml(r.ref)}</td><td>${escapeHtml(r.decimal)}</td><td>${r.factor}</td><td>${r.integer}</td><td class="value bytes">${escapeHtml(r.hex)}</td></tr>`:`<tr><td class="axis">${escapeHtml(r.ref)}</td><td class="bytes">${escapeHtml(r.hex)}</td><td>${r.integer}</td><td>${r.factor}</td><td class="value">${escapeHtml(r.resultText)}</td></tr>`).join('');$('resultActions').classList.remove('hidden');$('copyResults').classList.remove('hidden');$('clearHistory').classList.remove('hidden');}
+function renderFullResults(){const rows=fullRows;$('resultHead').innerHTML='<tr><th>Eje</th><th>Hex.</th><th>Entero</th><th>Divisor</th><th>Resultado / estado</th></tr>';$('count').textContent=rows.length?`${rows.filter(r=>r.complete).length} completos`:'Sin resultados';$('status').textContent=rows.length?'Resultados del telegrama actual. Los ejes no introducidos se omiten.':'Introduce bytes y pulsa Convertir para mostrar los ejes disponibles.';$('rows').innerHTML=rows.map(r=>`<tr><td class="axis">${escapeHtml(r.axis)}</td><td class="bytes">${escapeHtml(r.hex||'—')}</td><td>${r.integer===null?'—':r.integer}</td><td>${r.div}</td><td class="value">${escapeHtml(r.resultText)}</td></tr>`).join('');$('resultActions').classList.remove('hidden');$('copyResults').classList.toggle('hidden',!rows.some(r=>r.complete));$('clearHistory').classList.add('hidden');}
+function renderResults(){if(mode==='individual')renderIndividualHistory();else renderFullResults();}
+function convertIndividual(){const hist=currentHistory();if(hist.length>=10){$('individualMessage').textContent='Has alcanzado el límite de 10 conversiones de este historial. Pulsa «Limpiar historial» para continuar.';$('individualMessage').className='status warning';return;}const ref=$('axisName').value,factor=Number($('individualFactor').value),reverse=$('direction').value==='decimal';try{let row;if(reverse){const raw=$('decimalValue').value.trim().replace(',','.');if(!raw)throw Error('Introduce un valor decimal.');const value=Number(raw);if(!Number.isFinite(value))throw Error('Valor decimal no válido.');const scaled=Math.round(value*factor),min=-(2**(bits()-1)),max=2**(bits()-1)-1;if(scaled<min||scaled>max)throw Error(`Fuera del rango Int${bits()}: ${min} a ${max}.`);const hex=encodeInt(scaled);row={ref,decimal:$('decimalValue').value.trim(),factor,integer:scaled,hex,copy:`${ref}: ${hex}`};$('individualMessage').textContent=`Conversión correcta · Entero escalado: ${scaled} · Multiplicador: ${factor} · Int${bits()} · Little Endian`;}else{const raw=cleanHex($('hexValue').value);if(!raw)throw Error('Introduce un valor hexadecimal.');if(!isHex(raw))throw Error('Hay caracteres que no son hexadecimales.');if(raw.length!==bytesPer()*2)throw Error(`Para ${format==='toolbox'?'Toolbox/BK':'3D'} introduce exactamente ${bytesPer()} bytes (${bytesPer()*2} dígitos hexadecimales).`);const integer=decodeComplete(raw),result=integer/factor,unit=axisIndex()>=3?'°':'mm',resultText=`${fmt(result)} ${unit}`,hex=raw.match(/.{2}/g).join(' ');row={ref,hex,integer,factor,resultText,copy:`${ref}: ${resultText}`};$('individualMessage').textContent=`Conversión correcta · Entero: ${integer} · Divisor: ${factor} · Int${bits()} · Little Endian`;}
+ hist.push(row);$('individualMessage').className='status';$('hexValue').value='';$('decimalValue').value='';renderResults();}catch(e){$('individualMessage').textContent=e.message;$('individualMessage').className='status error';}}
+function convertFull(){const raw=cleanHex($('telegram').value),target=expectedChars(),width=bytesPer()*2;fullRows=[];if(raw.length>target){$('fullMessage').textContent=`Has introducido ${raw.length} dígitos; el máximo para este formato es ${target}.`;$('fullMessage').className='status error';renderFullResults();return;}if(raw&&!isHex(raw)){$('fullMessage').textContent='El telegrama contiene caracteres que no son hexadecimales. Corrige esos caracteres.';$('fullMessage').className='status error';renderFullResults();return;}let completed=0,partial=null;for(let i=0;i<6;i++){const segment=raw.slice(i*width,(i+1)*width);if(!segment)break;if(segment.length===width){const integer=decodeComplete(segment),div=Number($('ff'+i).value),result=integer/div,unit=i<3?'mm':'°';fullRows.push({axis:axes[i],hex:segment.match(/.{2}/g).join(' '),integer,div,resultText:`${fmt(result)} ${unit}`,complete:true,copy:`${axes[i]}: ${fmt(result)} ${unit}`});completed++;}else{const fullBytes=Math.floor(segment.length/2),odd=segment.length%2;fullRows.push({axis:axes[i],hex:segment.match(/.{1,2}/g).join(' '),integer:null,div:Number($('ff'+i).value),resultText:`Incompleto · ${fullBytes}/${bytesPer()} bytes${odd?' · falta 1 dígito':''}`,complete:false});partial={axis:axes[i],fullBytes,odd};break;}}
+ const bytes=Math.floor(raw.length/2),odd=raw.length%2;let msg=`${raw.length}/${target} dígitos. ${bytes} bytes completos. ${completed} de 6 ejes completos.`;if(partial)msg+=` ${partial.axis} incompleto: ${partial.fullBytes}/${bytesPer()} bytes${partial.odd?' + 1 dígito':''}.`;const next=partial?axes.slice(axes.indexOf(partial.axis)+1):axes.slice(completed);if(next.length)msg+=` Pendientes: ${next.join(', ')}.`;else if(completed===6)msg+=' Telegrama completo convertido correctamente.';if(!raw)msg='Introduce el telegrama hexadecimal.';$('fullMessage').textContent=msg;$('fullMessage').className=partial||odd?'status warning':'status';renderFullResults();}
+async function copyText(text){if(!text){alert('No hay resultados válidos para copiar.');return;}try{await navigator.clipboard.writeText(text);alert('Resultados copiados.');}catch(e){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();alert('Resultados copiados.');}}
+$('direction').addEventListener('change',()=>{renderMode();$('individualMessage').textContent='Introduce un valor para convertir.';$('individualMessage').className='status';renderResults();});$('axisName').addEventListener('change',()=>{$('individualFactor').innerHTML=options(defaults[format][axisIndex()]);});$('individualConvert').addEventListener('click',convertIndividual);$('individualClearFields').addEventListener('click',()=>{$('hexValue').value='';$('decimalValue').value='';$('individualMessage').textContent='Campos limpiados. Los historiales se conservan.';$('individualMessage').className='status';});$('fullConvert').addEventListener('click',convertFull);$('fullClear').addEventListener('click',()=>{$('telegram').value='';updateCharCount();fullRows=[];$('fullMessage').textContent='Campo del telegrama limpiado.';$('fullMessage').className='status';renderFullResults();});$('telegram').addEventListener('input',updateCharCount);$('copyResults').addEventListener('click',()=>{const text=mode==='individual'?currentHistory().map(r=>r.copy).join('\n'):fullRows.filter(r=>r.complete).map(r=>r.copy).join('\n');copyText(text);});$('clearHistory').addEventListener('click',()=>{if(mode!=='individual')return;histories[format][$('direction').value]=[];$('individualMessage').textContent='Historial de este formato y conversión limpiado.';$('individualMessage').className='status';renderResults();});document.querySelectorAll('#format button').forEach(b=>b.addEventListener('click',()=>setFormat(b.dataset.format)));document.querySelectorAll('#mode button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+setFactorDefaults();renderMode();updateCharCount();renderResults();if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script></body></html>
